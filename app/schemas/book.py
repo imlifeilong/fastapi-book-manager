@@ -1,30 +1,3 @@
-# from pydantic import BaseModel
-# from typing import Optional
-#
-#
-# class BookCreate(BaseModel):
-#     title: str
-#     author: str
-#     description: Optional[str] = ""
-#
-#
-# class BookUpdate(BaseModel):
-#     title: Optional[str]
-#     author: Optional[str]
-#     description: Optional[str]
-#
-#
-# class BookOut(BaseModel):
-#     id: int
-#     title: str
-#     author: str
-#     description: Optional[str]
-#     owner_id: int
-#
-#
-# class Config:
-#     orm_mode = True
-
 from pydantic import BaseModel, Field, HttpUrl
 from typing import Optional
 from datetime import datetime

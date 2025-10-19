@@ -25,6 +25,7 @@ AsyncSessionLocal = async_sessionmaker(
 # 声明基类
 Base = declarative_base()
 
+
 async def get_db():
     """
     获取数据库会话的异步依赖函数
@@ -40,11 +41,13 @@ async def get_db():
         finally:
             await session.close()
 
+
 async def create_tables():
     """异步创建所有数据库表"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     print("Database tables created successfully")
+
 
 async def drop_tables():
     """异步删除所有数据库表（用于测试）"""
