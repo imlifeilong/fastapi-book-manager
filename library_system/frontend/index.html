@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 图书馆管理系统</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div id="login-page" class="page active">
+        <div class="login-container">
+            <div class="login-box">
+                <div class="logo">
+                    <i class="fas fa-book-reader"></i>
+                    <h1>图书馆管理系统</h1>
+                    <p>Library Management System</p>
+                </div>
+                <form id="login-form">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="login-username" placeholder="用户名" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="login-password" placeholder="密码" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-sign-in-alt"></i> 登录
+                    </button>
+                </form>
+                <div class="login-tips">
+                    <p>💡 测试账号：</p>
+                    <span class="tag">admin / admin123</span>
+                    <span class="tag">librarian / lib123</span>
+                    <span class="tag">reader / reader123</span>
+                </div>
+                <div id="login-error" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用页面 -->
+    <div id="app-page" class="page">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-book-reader"></i>
+                <span>图书馆系统</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>数据概览</span>
+                </a>
+                <a href="#" class="nav-item" data-page="books">
+                    <i class="fas fa-book"></i>
+                    <span>图书管理</span>
+                </a>
+                <a href="#" class="nav-item" data-page="borrows">
+                    <i class="fas fa-hand-holding-book"></i>
+                    <span>借阅管理</span>
+                </a>
+                <a href="#" class="nav-item admin-only" data-page="users" style="display:none;">
+                    <i class="fas fa-users"></i>
+                    <span>用户管理</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <span id="user-name">--</span>
+                        <small id="user-role">--</small>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn btn-text">
+                    <i class="fas fa-sign-out-alt"></i> 退出
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 顶部栏 -->
+            <header class="top-bar">
+                <h2 id="page-title">数据概览</h2>
+                <div class="top-bar-actions">
+                    <span id="current-time"></span>
+                </div>
+            </header>
+
+            <!-- 页面内容 -->
+            <div class="content-wrapper">
+                <!-- 数据概览页 -->
+                <div id="page-dashboard" class="content-page active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon blue"><i class="fas fa-book"></i></div>
+                            <div class="stat-info">
+                                <h3 id="stat-total-books">0</h3>
+                                <p>图书总数</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green"><i class="fas fa-hand-holding-book"></i></div>
+                            <div class="stat-info">
+                                <h3 id="stat-active-borrows">0</h3>
+                                <p>当前借阅</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="stat-info">
+                                <h3 id="stat-overdue">0</h3>
+                                <p>逾期数量</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon red"><i class="fas fa-coins"></i></div>
+                            <div class="stat-info">
+                                <h3 id="stat-fines">¥0</h3>
+                                <p>累计罚款</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-sections">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-clock"></i> 最近借阅记录</h3>
+                            </div>
+                            <div class="card-body">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>图书</th>
+                                            <th>借阅人</th>
+                                            <th>借阅日期</th>
+                                            <th>应还日期</th>
+                                            <th>状态</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recent-borrows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图书管理页 -->
+                <div id="page-books" class="content-page">
+                    <div class="page-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="book-search" placeholder="搜索书名、作者、ISBN...">
+                        </div>
+                        <select id="book-category-filter">
+                            <option value="">全部分类</option>
+                        </select>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="available-only"> 仅显示可借
+                        </label>
+                        <button id="btn-add-book" class="btn btn-primary admin-librarian-only" style="display:none;">
+                            <i class="fas fa-plus"></i> 添加图书
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ISBN</th>
+                                        <th>书名</th>
+                                        <th>作者</th>
+                                        <th>分类</th>
+                                        <th>库存</th>
+                                        <th>位置</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="books-table"></tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer">
+                            <div class="pagination">
+                                <button id="book-prev" class="btn btn-sm"><i class="fas fa-chevron-left"></i></button>
+                                <span id="book-page-info">第 1 页</span>
+                                <button id="book-next" class="btn btn-sm"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 借阅管理页 -->
+                <div id="page-borrows" class="content-page">
+                    <div class="page-toolbar">
+                        <div class="tab-group">
+                            <button class="tab-btn active" data-tab="my-borrows">我的借阅</button>
+                            <button class="tab-btn admin-librarian-only" data-tab="all-borrows" style="display:none;">全部记录</button>
+                        </div>
+                        <button id="btn-check-overdue" class="btn btn-warning admin-librarian-only" style="display:none;">
+                            <i class="fas fa-sync"></i> 检查逾期
+                        </button>
+                    </div>
+
+                    <div id="tab-my-borrows" class="tab-content active">
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>图书</th>
+                                            <th>作者</th>
+                                            <th>借阅日期</th>
+                                            <th>应还日期</th>
+                                            <th>状态</th>
+                                            <th>罚款</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="my-borrows-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-all-borrows" class="tab-content">
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>借阅人</th>
+                                            <th>图书</th>
+                                            <th>借阅日期</th>
+                                            <th>应还日期</th>
+                                            <th>状态</th>
+                                            <th>罚款</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="all-borrows-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户管理页 -->
+                <div id="page-users" class="content-page">
+                    <div class="page-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="user-search" placeholder="搜索用户名、邮箱...">
+                        </div>
+                        <button id="btn-add-user" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> 添加用户
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>用户名</th>
+                                        <th>邮箱</th>
+                                        <th>姓名</th>
+                                        <th>角色</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 添加图书弹窗 -->
+    <div id="modal-add-book" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> 添加图书</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="form-add-book">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ISBN <span class="required">*</span></label>
+                        <input type="text" name="isbn" required placeholder="978-7-111-11111-1">
+                    </div>
+                    <div class="form-group">
+                        <label>书名 <span class="required">*</span></label>
+                        <input type="text" name="title" required placeholder="请输入书名">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>作者 <span class="required">*</span></label>
+                        <input type="text" name="author" required placeholder="请输入作者">
+                    </div>
+                    <div class="form-group">
+                        <label>出版社</label>
+                        <input type="text" name="publisher" placeholder="请输入出版社">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>出版年份</label>
+                        <input type="number" name="publish_year" min="1000" max="2100" placeholder="2024">
+                    </div>
+                    <div class="form-group">
+                        <label>分类</label>
+                        <input type="text" name="category" placeholder="如：计算机、文学">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>总数量 <span class="required">*</span></label>
+                        <input type="number" name="total_copies" min="1" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>书架位置</label>
+                        <input type="text" name="location" placeholder="如：A区-3排-2层">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>简介</label>
+                    <textarea name="description" rows="3" placeholder="图书简介..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close-btn">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加用户弹窗 -->
+    <div id="modal-add-user" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> 添加用户</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="form-add-user">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>用户名 <span class="required">*</span></label>
+                        <input type="text" name="username" required placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label>密码 <span class="required">*</span></label>
+                        <input type="password" name="password" required placeholder="至少6位">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>邮箱 <span class="required">*</span></label>
+                        <input type="email" name="email" required placeholder="user@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>姓名</label>
+                        <input type="text" name="full_name" placeholder="真实姓名">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>角色</label>
+                    <select name="role">
+                        <option value="reader">读者</option>
+                        <option value="librarian">图书管理员</option>
+                        <option value="admin">管理员</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close-btn">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 借阅图书弹窗 -->
+    <div id="modal-borrow" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3><i class="fas fa-hand-holding-book"></i> 借阅图书</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="form-borrow">
+                <input type="hidden" name="book_id" id="borrow-book-id">
+                <div class="form-group">
+                    <label>图书</label>
+                    <input type="text" id="borrow-book-title" readonly class="readonly">
+                </div>
+                <div class="form-group">
+                    <label>借阅天数 <span class="required">*</span></label>
+                    <input type="number" name="days" min="1" max="90" value="30" required>
+                    <small>最多可借 90 天</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close-btn">取消</button>
+                    <button type="submit" class="btn btn-primary">确认借阅</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast-container"></div>
+
+    <!-- 加载动画 -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
